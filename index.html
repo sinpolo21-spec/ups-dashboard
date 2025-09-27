@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise UPS Management System - Advanced Analytics Platform</title>
+    
+    <!-- Fixed CDN Links for GitHub Pages Compatibility -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ecf0f1;
+            --text-secondary: #bdc3c7;
+            --accent-blue: #5dade2;
+            --accent-green: #58d68d;
+            --accent-purple: #bb8fce;
+            --accent-orange: #f7dc6f;
+            --danger: #ec7063;
+            --warning: #f39c12;
+            --success: #27ae60;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(ellipse at top, #1a1a2e, #16213e), 
+                        linear-gradient(135deg, #0f0f23, #1a1a2e);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        /* Loading System */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+        }
+
+        .loading-logo {
+            width: 120px;
+            height: 120px;
+            border: 4px solid transparent;
+            border-top: 4px solid #667eea;
+            border-right: 4px solid #764ba2;
+            border-bottom: 4px solid #f093fb;
+            border-radius: 50%;
+            animation: complexSpin 2s linear infinite;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .loading-logo::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            animation: complexSpin 1.5s linear infinite reverse;
+        }
+
+        @keyframes complexSpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .loading-text {
+            color: var(--accent-blue);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .loading-progress {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .loading-progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .loading-status {
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Login Portal */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.95), rgba(26, 26, 46, 0.95));
+            backdrop-filter: blur(20px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .login-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 2px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            min-width: 520px;
+            animation: loginGlide 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes loginGlide {
+            from { opacity: 0; transform: translateY(-60px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .login-title {
+            font-size: 3.2rem;
+            margin-bottom: 20px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            letter-spacing: -2px;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-size: 1.3rem;
+            font-weight: 300;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 22px 28px;
+            margin-bottom: 28px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            font-size: 17px;
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            font-weight: 500;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+            transform: scale(1.02);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 22px;
+            border: none;
+            border-radius: 18px;
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 19px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 60px rgba(102, 126, 234, 0.6);
+        }
+
+        .security-notice {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 50px 30px;
+            text-align: center;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 4s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 12px rgba(0,0,0,0.4);
+            font-weight: 900;
+            letter-spacing: -3px;
+        }
+
+        .header p {
+            font-size: 1.5rem;
+            opacity: 0.95;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Grid System */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .main-panel, .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* Panel System */
+        .panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 2px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 28px 28px 0 0;
+        }
+
+        .panel:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.2), rgba(46, 204, 113, 0.1));
+            border-color: rgba(39, 174, 96, 0.3);
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .btn {
+            padding: 20px 35px;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .btn-start { 
+            background: linear-gradient(135deg, #27ae60, #2ecc71, #58d68d); 
+            color: white;
+        }
+        .btn-stop { 
+            background: linear-gradient(135deg, #e74c3c, #c0392b, #ec7063); 
+            color: white;
+        }
+        .btn-export { 
+            background: linear-gradient(135deg, #3498db, #2980b9, #5dade2); 
+            color: white;
+        }
+        .btn-ai { 
+            background: linear-gradient(135deg, #9b59b6, #8e44ad, #bb8fce); 
+            color: white;
+        }
+        .btn-simulate { 
+            background: linear-gradient(135deg, #f39c12, #e67e22, #f7dc6f); 
+            color: white;
+        }
+        .btn-analyze { 
+            background: linear-gradient(135deg, #16a085, #1abc9c, #7fb3d3); 
+            color: white;
+        }
+
+        /* Status System */
+        .status {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            padding: 30px;
+            background: rgba(39, 174, 96, 0.15);
+            border-radius: 18px;
+            border-left: 6px solid var(--success);
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.2);
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: advancedPulse 2s infinite;
+            box-shadow: 0 0 25px var(--success);
+        }
+
+        @keyframes advancedPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.3); box-shadow: 0 0 40px var(--success); }
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 35px;
+            text-align: center;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+            background-size: 400% 100%;
+            animation: gradientFlow 5s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .metric-card:hover {
+            transform: translateY(-12px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .metric-title {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 18px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 12px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .metric-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        /* Charts Container */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .chart-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 2px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .chart-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .chart-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+
+        /* 3D Container */
+        .topology-3d {
+            height: 450px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3));
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--glass-border);
+            box-shadow: inset 0 4px 25px rgba(0,0,0,0.5);
+        }
+
+        /* AI Panel */
+        .ai-panel {
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.25), rgba(142, 68, 173, 0.15));
+            border: 2px solid rgba(155, 89, 182, 0.4);
+        }
+
+        .ai-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--accent-purple);
+            letter-spacing: 0.5px;
+        }
+
+        .ai-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .ai-metric {
+            background: rgba(155, 89, 182, 0.2);
+            padding: 25px;
+            border-radius: 18px;
+            text-align: center;
+            border: 2px solid rgba(155, 89, 182, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .ai-metric:hover {
+            transform: scale(1.05);
+            border-color: rgba(155, 89, 182, 0.6);
+        }
+
+        .ai-metric-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ai-metric-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent-purple);
+        }
+
+        /* Financial Panel */
+        .financial-panel {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.2), rgba(46, 204, 113, 0.1));
+            border: 2px solid rgba(39, 174, 96, 0.4);
+        }
+
+        .financial-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .financial-item:last-child {
+            border-bottom: none;
+        }
+
+        .financial-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .financial-value {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .financial-value.cost { color: var(--accent-blue); }
+        .financial-value.savings { color: var(--accent-green); }
+        .financial-value.roi { color: var(--accent-orange); }
+
+        /* Notification System */
+        .notification {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            background: linear-gradient(135deg, var(--success), #2ecc71);
+            color: white;
+            padding: 25px 35px;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            z-index: 1000;
+            max-width: 450px;
+            animation: slideInRight 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            border-left: 6px solid #ffffff;
+            font-weight: 600;
+        }
+
+        .notification.error { background: linear-gradient(135deg, var(--danger), #c0392b); }
+        .notification.info { background: linear-gradient(135deg, var(--accent-blue), #2980b9); }
+        .notification.warning { background: linear-gradient(135deg, var(--warning), #e67e22); }
+
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1600px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .charts-container { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 25px; }
+            .header h1 { font-size: 2.8rem; }
+            .header p { font-size: 1.2rem; }
+            .control-buttons { grid-template-columns: 1fr; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .ai-metrics { grid-template-columns: 1fr; }
+            .login-container { min-width: 340px; margin: 25px; padding: 40px; }
+        }
+
+        /* Loading States */
+        .loading-state {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error Fallback Styles */
+        .error-fallback {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .error-fallback h3 {
+            color: var(--warning);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo"></div>
+        <div class="loading-text">Enterprise UPS System</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loadingProgress"></div>
+        </div>
+        <div class="loading-status" id="loadingStatus">Initializing core systems...</div>
+    </div>
+
+    <!-- Login Portal -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-container">
+            <h1 class="login-title">Enterprise Portal</h1>
+            <p class="login-subtitle">Advanced UPS Management System</p>
+            <form id="loginForm">
+                <input type="text" class="login-input" id="username" placeholder="Username" required>
+                <input type="password" class="login-input" id="password" placeholder="Password" required>
+                <button type="submit" class="login-btn">Access Enterprise Dashboard</button>
+            </form>
+            <div class="login-error" id="loginError"></div>
+            <div class="security-notice">
+                <strong>Enterprise Security Notice:</strong> This system requires authenticated access to advanced UPS analytics and AI-driven optimization systems.<br>
+                <strong>Demo Access:</strong> admin / enterprise2024
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Enterprise Dashboard -->
+    <div id="mainDashboard" style="display: none;">
+        <div class="header">
+            <h1>Enterprise UPS Management System</h1>
+            <p>AI-Driven Power Analytics | Predictive Maintenance | Real-time Optimization</p>
+        </div>
+        
+        <div class="container">
+            <div class="dashboard-grid">
+                <div class="main-panel">
+                    <!-- Control Center -->
+                    <div class="panel control-panel">
+                        <h3 style="font-size: 28px; font-weight: 800; margin-bottom: 30px; color: var(--accent-green);">Mission Control Center</h3>
+                        <div class="control-buttons">
+                            <button class="btn btn-start" onclick="startSystem()">Start System</button>
+                            <button class="btn btn-stop" onclick="stopSystem()">Emergency Stop</button>
+                            <button class="btn btn-simulate" onclick="runSimulation()">Run Simulation</button>
+                            <button class="btn btn-analyze" onclick="performAnalysis()">Deep Analysis</button>
+                            <button class="btn btn-export" onclick="exportReport()">Export Report</button>
+                            <button class="btn btn-ai" onclick="toggleAIMode()">AI Optimization</button>
+                        </div>
+                        <div class="status" id="systemStatus">
+                            <div class="status-indicator"></div>
+                            SYSTEM STATUS: ACTIVE - Enterprise AI Engine Running
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Metrics -->
+                    <div class="panel">
+                        <h3 style="font-size: 28px; font-weight: 800; margin-bottom: 30px; color: var(--text-primary);">Real-time Performance Analytics</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-title">Current Load</div>
+                                <div class="metric-value" id="currentLoad">31,547 VA</div>
+                                <div class="metric-subtitle">Volt-Amperes | Real-time</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">AI Efficiency</div>
+                                <div class="metric-value" id="systemEfficiency">96.7%</div>
+                                <div class="metric-subtitle">Neural optimization active</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Energy Optimized</div>
+                                <div class="metric-value" id="energySaved">847 kWh</div>
+                                <div class="metric-subtitle">Total AI optimization gains</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Cost Reduction</div>
+                                <div class="metric-value" id="costSavings">R23,847</div>
+                                <div class="metric-subtitle">Financial optimization (ZAR)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Battery Health</div>
+                                <div class="metric-value" id="batteryHealth">98.9%</div>
+                                <div class="metric-subtitle">Predictive maintenance</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Power Quality</div>
+                                <div class="metric-value" id="powerQuality">99.8%</div>
+                                <div class="metric-subtitle">THD & stability analysis</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Uptime</div>
+                                <div class="metric-value" id="systemUptime">99.97%</div>
+                                <div class="metric-subtitle">Enterprise reliability</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Neural Score</div>
+                                <div class="metric-value" id="neuralScore">94.2</div>
+                                <div class="metric-subtitle">AI performance index</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Container -->
+                    <div class="charts-container">
+                        <div class="chart-panel">
+                            <div class="chart-title">LSTM Neural Network Predictions</div>
+                            <div class="chart-subtitle">Deep Learning Load Forecasting with Confidence Intervals</div>
+                            <div class="chart-container">
+                                <canvas id="loadChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel">
+                            <div class="chart-title">Multi-Objective PSO Optimization</div>
+                            <div class="chart-subtitle">Particle Swarm Intelligence & Genetic Algorithm Hybrid</div>
+                            <div class="chart-container">
+                                <canvas id="efficiencyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Panel -->
+                    <div class="charts-container">
+                        <div class="chart-panel">
+                            <div class="chart-title">Harmonic Distortion Analysis</div>
+                            <div class="chart-subtitle">Real-time THD & Power Quality Assessment</div>
+                            <div class="chart-container">
+                                <canvas id="harmonicChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel">
+                            <div class="chart-title">System Status Monitor</div>
+                            <div class="chart-subtitle">Real-time System Health Visualization</div>
+                            <div class="chart-container">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="side-panel">
+                    <!-- AI Engine Panel -->
+                    <div class="panel ai-panel">
+                        <div class="ai-title">Enterprise AI Engine</div>
+                        <div class="ai-metrics">
+                            <div class="ai-metric">
+                                <div class="ai-metric-label">Neural Accuracy</div>
+                                <div class="ai-metric-value" id="modelAccuracy">99.2%</div>
+                            </div>
+                            <div class="ai-metric">
+                                <div class="ai-metric-label">Prediction Confidence</div>
+                                <div class="ai-metric-value" id="predictionConfidence">97.8%</div>
+                            </div>
+                            <div class="ai-metric">
+                                <div class="ai-metric-label">Learning Rate</div>
+                                <div class="ai-metric-value" id="learningRateDisplay">0.001</div>
+                            </div>
+                            <div class="ai-metric">
+                                <div class="ai-metric-label">Training Samples</div>
+                                <div class="ai-metric-value" id="trainingSamples">2.4M</div>
+                            </div>
+                            <div class="ai-metric">
+                                <div class="ai-metric-label">Model Layers</div>
+                                <div class="ai-metric-value" id="modelLayers">47</div>
+                            </div>
+                            <div class="ai-metric">
+                                <div class="ai-metric-label">Processing Speed</div>
+                                <div class="ai-metric-value" id="processingSpeed">847 Hz</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.8;">
+                            <strong>Active Neural Networks:</strong><br>
+                            LSTM Deep Learning | Transformer Architecture<br>
+                            PSO Multi-Objective | Genetic Algorithm<br>
+                            Fuzzy Logic Control | Reinforcement Learning<br>
+                            Anomaly Detection | Pattern Recognition
+                        </div>
+                    </div>
+                    
+                    <!-- Financial Analysis -->
+                    <div class="panel financial-panel">
+                        <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 25px; color: var(--accent-green);">Enterprise Financial Analysis</h3>
+                        <div class="financial-item">
+                            <span class="financial-label">Daily Energy Cost:</span>
+                            <span class="financial-value cost" id="dailyCost">R2,847.36</span>
+                        </div>
+                        <div class="financial-item">
+                            <span class="financial-label">Monthly Estimate:</span>
+                            <span class="financial-value cost" id="monthlyCost">R85,420.80</span>
+                        </div>
+                        <div class="financial-item">
+                            <span class="financial-label">Annual Projection:</span>
+                            <span class="financial-value cost" id="annualCost">R1,039,286.40</span>
+                        </div>
+                        <div class="financial-item">
+                            <span class="financial-label">AI Optimization Savings:</span>
+                            <span class="financial-value savings" id="potentialSavings">R187,071.55</span>
+                        </div>
+                        <div class="financial-item">
+                            <span class="financial-label">ROI Achievement:</span>
+                            <span class="financial-value roi" id="roiPeriod">1.4 years</span>
+                        </div>
+                        <div class="financial-item">
+                            <span class="financial-label">Carbon Footprint:</span>
+                            <span class="financial-value" id="carbonFootprint" style="color: #58d68d;">347.2 kg CO₂</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 3D System Topology -->
+                    <div class="panel">
+                        <h4 style="font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--text-primary);">3D Enterprise Topology</h4>
+                        <div class="topology-3d" id="topology3d"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Configuration
+        const ENTERPRISE_CONFIG = {
+            electricityRate: 3.47,
+            systemRunning: false,
+            aiMode: false,
+            charts: {},
+            timeSeriesData: {
+                timestamps: [],
+                loadData: [],
+                efficiencyData: [],
+                harmonicData: []
+            }
+        };
+
+        // Robust Error Handling
+        function safeExecute(fn, fallback = null) {
+            try {
+                return fn();
+            } catch (error) {
+                console.warn('Function execution failed:', error);
+                return fallback;
+            }
+        }
+
+        // Loading System
+        function initializeSystem() {
+            const loadingSteps = [
+                { text: 'Initializing core systems...', duration: 500 },
+                { text: 'Loading charts engine...', duration: 800 },
+                { text: 'Configuring optimization...', duration: 600 },
+                { text: 'Establishing connections...', duration: 700 },
+                { text: 'Calibrating sensors...', duration: 400 },
+                { text: 'Activating AI modules...', duration: 900 },
+                { text: 'System ready...', duration: 300 }
+            ];
+
+            let currentStep = 0;
+            const progressBar = document.getElementById('loadingProgress');
+            const statusText = document.getElementById('loadingStatus');
+
+            function executeStep() {
+                if (currentStep < loadingSteps.length) {
+                    const step = loadingSteps[currentStep];
+                    statusText.textContent = step.text;
+                    progressBar.style.width = `${((currentStep + 1) / loadingSteps.length) * 100}%`;
+                    
+                    setTimeout(() => {
+                        currentStep++;
+                        executeStep();
+                    }, step.duration);
+                } else {
+                    setTimeout(() => {
+                        document.getElementById('loadingScreen').style.display = 'none';
+                        document.getElementById('loginOverlay').style.display = 'flex';
+                        generateInitialData();
+                    }, 1000);
+                }
+            }
+
+            executeStep();
+        }
+
+        // Login System
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSystem();
+            
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    
+                    const username = document.getElementById('username').value.trim();
+                    const password = document.getElementById('password').value.trim();
+                    
+                    if (username === 'admin' && password === 'enterprise2024') {
+                        document.getElementById('loginOverlay').style.display = 'none';
+                        document.getElementById('mainDashboard').style.display = 'block';
+                        showNotification('Enterprise System Activated - Welcome Administrator', 'success');
+                        initializeDashboard();
+                    } else {
+                        document.getElementById('loginError').textContent = 'Access Denied - Invalid Enterprise Credentials';
+                        showNotification('Authentication Failed - Security Protocol Activated', 'error');
+                    }
+                });
+            }
+        });
+
+        // Generate Initial Data
+        function generateInitialData() {
+            const now = Date.now();
+            for (let i = 100; i >= 0; i--) {
+                const timestamp = new Date(now - i * 60000);
+                const hours = timestamp.getHours();
+                
+                // Realistic load patterns
+                const baseLoad = 31547;
+                const timeVariation = Math.sin((hours / 24) * 2 * Math.PI) * baseLoad * 0.4;
+                const businessHours = (hours >= 7 && hours <= 19) ? 1.3 : 0.7;
+                const randomVariation = (Math.random() - 0.5) * baseLoad * 0.08;
+                const load = Math.max(5000, baseLoad * businessHours + timeVariation + randomVariation);
+                
+                const efficiency = Math.min(99.9, Math.max(85, 96.5 + (Math.random() - 0.5) * 2));
+                const harmonic = 2.5 + Math.sin(i * 0.1) * 0.8 + Math.random() * 0.5;
+                
+                ENTERPRISE_CONFIG.timeSeriesData.timestamps.push(timestamp);
+                ENTERPRISE_CONFIG.timeSeriesData.loadData.push(load);
+                ENTERPRISE_CONFIG.timeSeriesData.efficiencyData.push(efficiency);
+                ENTERPRISE_CONFIG.timeSeriesData.harmonicData.push(harmonic);
+            }
+        }
+
+        // Initialize Dashboard
+        function initializeDashboard() {
+            safeExecute(() => {
+                initializeCharts();
+                initialize3DTopology();
+                startSimulation();
+            });
+        }
+
+        // Chart Initialization with Robust Fallback
+        function initializeCharts() {
+            // Check if Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not available - using canvas fallbacks');
+                initializeCanvasCharts();
+                return;
+            }
+
+            try {
+                Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
+                Chart.defaults.font.size = 12;
+                Chart.defaults.color = '#ecf0f1';
+
+                // Load Chart
+                const loadCtx = document.getElementById('loadChart');
+                if (loadCtx) {
+                    ENTERPRISE_CONFIG.charts.loadChart = new Chart(loadCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: ENTERPRISE_CONFIG.timeSeriesData.timestamps.map(t => 
+                                t.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})
+                            ),
+                            datasets: [{
+                                label: 'Current Load (VA)',
+                                data: ENTERPRISE_CONFIG.timeSeriesData.loadData,
+                                borderColor: '#5dade2',
+                                backgroundColor: 'rgba(93, 173, 226, 0.2)',
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3,
+                                borderWidth: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: { 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 14 }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    title: { 
+                                        display: true, 
+                                        text: 'Load (VA)', 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 16 } 
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { 
+                                        color: '#bdc3c7',
+                                        callback: function(value) {
+                                            return value.toLocaleString() + ' VA';
+                                        }
+                                    }
+                                },
+                                x: {
+                                    title: { 
+                                        display: true, 
+                                        text: 'Time', 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 16 } 
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { 
+                                        color: '#bdc3c7',
+                                        maxTicksLimit: 10
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Efficiency Chart
+                const effCtx = document.getElementById('efficiencyChart');
+                if (effCtx) {
+                    ENTERPRISE_CONFIG.charts.efficiencyChart = new Chart(effCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: ENTERPRISE_CONFIG.timeSeriesData.timestamps.map(t => 
+                                t.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})
+                            ),
+                            datasets: [{
+                                label: 'System Efficiency (%)',
+                                data: ENTERPRISE_CONFIG.timeSeriesData.efficiencyData,
+                                borderColor: '#58d68d',
+                                backgroundColor: 'rgba(88, 214, 141, 0.2)',
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3,
+                                borderWidth: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: { 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 14 }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    min: 85, 
+                                    max: 100,
+                                    title: { 
+                                        display: true, 
+                                        text: 'Efficiency (%)', 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 16 } 
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { 
+                                        color: '#bdc3c7',
+                                        callback: function(value) {
+                                            return value.toFixed(1) + '%';
+                                        }
+                                    }
+                                },
+                                x: {
+                                    title: { 
+                                        display: true, 
+                                        text: 'Time', 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 16 } 
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { 
+                                        color: '#bdc3c7',
+                                        maxTicksLimit: 10
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Harmonic Chart
+                const harmonicCtx = document.getElementById('harmonicChart');
+                if (harmonicCtx) {
+                    ENTERPRISE_CONFIG.charts.harmonicChart = new Chart(harmonicCtx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Fundamental', '3rd', '5th', '7th', '9th', '11th', '13th'],
+                            datasets: [{
+                                label: 'Harmonic Content (%)',
+                                data: [100, 2.1, 1.8, 1.2, 0.9, 0.6, 0.4],
+                                backgroundColor: [
+                                    '#58d68d', '#f093fb', '#5dade2', '#f7dc6f', 
+                                    '#bb8fce', '#ec7063', '#85c1e9'
+                                ],
+                                borderWidth: 2,
+                                borderColor: 'rgba(255, 255, 255, 0.3)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: { 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 14 } 
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: { 
+                                        display: true, 
+                                        text: 'Magnitude (%)', 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 16 } 
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { 
+                                        color: '#bdc3c7',
+                                        callback: function(value) {
+                                            return value.toFixed(1) + '%';
+                                        }
+                                    }
+                                },
+                                x: {
+                                    title: { 
+                                        display: true, 
+                                        text: 'Harmonic Order', 
+                                        color: '#ecf0f1', 
+                                        font: { weight: 'bold', size: 16 } 
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { color: '#bdc3c7' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Status Chart
+                initializeStatusChart();
+
+            } catch (error) {
+                console.error('Chart.js initialization failed:', error);
+                initializeCanvasCharts();
+            }
+        }
+
+        // Status Chart
+        function initializeStatusChart() {
+            const statusCtx = document.getElementById('statusChart');
+            if (statusCtx && typeof Chart !== 'undefined') {
+                ENTERPRISE_CONFIG.charts.statusChart = new Chart(statusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Optimal', 'Warning', 'Critical', 'Offline'],
+                        datasets: [{
+                            data: [85, 10, 3, 2],
+                            backgroundColor: ['#58d68d', '#f7dc6f', '#ec7063', '#95a5a6'],
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { 
+                                    color: '#ecf0f1', 
+                                    font: { weight: 'bold', size: 14 },
+                                    padding: 20
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Canvas Chart Fallback
+        function initializeCanvasCharts() {
+            console.log('Initializing canvas-based charts...');
+            
+            ['loadChart', 'efficiencyChart', 'harmonicChart', 'statusChart'].forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                if (canvas) {
+                    drawFallbackChart(canvas, chartId);
+                }
+            });
+        }
+
+        function drawFallbackChart(canvas, chartType) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            const { width, height } = canvas;
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#ecf0f1';
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+
+            switch (chartType) {
+                case 'loadChart':
+                    ctx.fillText('Load Forecasting Chart', width / 2, 30);
+                    drawSimpleLine(ctx, ENTERPRISE_CONFIG.timeSeriesData.loadData, '#5dade2');
+                    break;
+                case 'efficiencyChart':
+                    ctx.fillText('Efficiency Chart', width / 2, 30);
+                    drawSimpleLine(ctx, ENTERPRISE_CONFIG.timeSeriesData.efficiencyData, '#58d68d');
+                    break;
+                case 'harmonicChart':
+                    ctx.fillText('Harmonic Analysis', width / 2, 30);
+                    drawSimpleBars(ctx, [100, 2.1, 1.8, 1.2, 0.9, 0.6, 0.4]);
+                    break;
+                case 'statusChart':
+                    ctx.fillText('System Status', width / 2, 30);
+                    drawSimplePie(ctx, [85, 10, 3, 2]);
+                    break;
+            }
+        }
+
+        function drawSimpleLine(ctx, data, color) {
+            if (!data || data.length === 0) return;
+            
+            const canvas = ctx.canvas;
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding - 40;
+            
+            const minVal = Math.min(...data) * 0.95;
+            const maxVal = Math.max(...data) * 1.05;
+            const valueRange = maxVal - minVal;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            data.forEach((value, index) => {
+                const x = padding + (index / (data.length - 1)) * chartWidth;
+                const y = canvas.height - padding - ((value - minVal) / valueRange) * chartHeight;
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+        }
+
+        function drawSimpleBars(ctx, data) {
+            const canvas = ctx.canvas;
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding - 40;
+            const barWidth = chartWidth / data.length * 0.8;
+            const maxVal = Math.max(...data);
+
+            const colors = ['#58d68d', '#f093fb', '#5dade2', '#f7dc6f', '#bb8fce', '#ec7063', '#85c1e9'];
+
+            data.forEach((value, index) => {
+                const x = padding + index * (chartWidth / data.length) + (chartWidth / data.length - barWidth) / 2;
+                const barHeight = (value / maxVal) * chartHeight;
+                const y = canvas.height - padding - barHeight;
+
+                ctx.fillStyle = colors[index] || '#5dade2';
+                ctx.fillRect(x, y, barWidth, barHeight);
+            });
+        }
+
+        function drawSimplePie(ctx, data) {
+            const canvas = ctx.canvas;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) / 4;
+            const total = data.reduce((a, b) => a + b, 0);
+            
+            const colors = ['#58d68d', '#f7dc6f', '#ec7063', '#95a5a6'];
+            let currentAngle = 0;
+
+            data.forEach((value, index) => {
+                const sliceAngle = (value / total) * 2 * Math.PI;
+                
+                ctx.fillStyle = colors[index];
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                currentAngle += sliceAngle;
+            });
+        }
+
+        // 3D Topology with Fallback
+        function initialize3DTopology() {
+            const container = document.getElementById('topology3d');
+            if (!container) return;
+
+            if (typeof THREE === 'undefined') {
+                console.warn('Three.js not available - using 2D fallback');
+                init2DTopologyFallback(container);
+                return;
+            }
+
+            try {
+                container.innerHTML = '';
+
+                // Basic Three.js scene
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0a0a1a);
+                
+                const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.set(10, 10, 10);
+
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.appendChild(renderer.domElement);
+
+                // Add lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 10, 5);
+                scene.add(directionalLight);
+
+                // Create UPS system
+                const geometry = new THREE.BoxGeometry(2, 1, 1);
+                const material = new THREE.MeshPhongMaterial({ color: 0x2c3e50 });
+                const upsUnit = new THREE.Mesh(geometry, material);
+                scene.add(upsUnit);
+
+                // Create battery units
+                for (let i = 0; i < 6; i++) {
+                    const batteryGeometry = new THREE.BoxGeometry(0.3, 0.6, 0.2);
+                    const batteryMaterial = new THREE.MeshPhongMaterial({ color: 0x27ae60 });
+                    const battery = new THREE.Mesh(batteryGeometry, batteryMaterial);
+                    battery.position.set(-3 + i * 0.4, -1, 0);
+                    scene.add(battery);
+                }
+
+                // Animation loop
+                function animate() {
+                    requestAnimationFrame(animate);
+                    upsUnit.rotation.y += 0.005;
+                    renderer.render(scene, camera);
+                }
+                animate();
+
+                // Handle resize
+                window.addEventListener('resize', () => {
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    camera.aspect = width / height;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(width, height);
+                });
+
+            } catch (error) {
+                console.error('3D initialization failed:', error);
+                init2DTopologyFallback(container);
+            }
+        }
+
+        function init2DTopologyFallback(container) {
+            container.innerHTML = `<canvas id="topology2d" style="width: 100%; height: 100%;"></canvas>`;
+            const canvas = document.getElementById('topology2d');
+            const ctx = canvas.getContext('2d');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            function draw2DSystem() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // Draw UPS main unit
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillRect(centerX - 60, centerY - 40, 120, 80);
+                
+                ctx.strokeStyle = '#34495e';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(centerX - 60, centerY - 40, 120, 80);
+
+                // UPS label
+                ctx.fillStyle = '#ecf0f1';
+                ctx.font = 'bold 16px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('ENTERPRISE UPS', centerX, centerY + 5);
+
+                // Status LEDs
+                const ledColors = ['#27ae60', '#27ae60', '#3498db', '#f39c12', '#e74c3c'];
+                for (let i = 0; i < 5; i++) {
+                    const x = centerX - 40 + i * 20;
+                    const y = centerY - 60;
+
+                    ctx.fillStyle = ledColors[i];
+                    ctx.beginPath();
+                    ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
+                // Battery bank
+                for (let i = 0; i < 6; i++) {
+                    const x = centerX - 60 + i * 20;
+                    const y = centerY + 80;
+
+                    ctx.fillStyle = '#27ae60';
+                    ctx.fillRect(x - 5, y, 10, 30);
+                }
+
+                // Labels
+                ctx.fillStyle = '#ecf0f1';
+                ctx.font = '14px Inter';
+                ctx.fillText('BATTERY BANK', centerX, centerY + 140);
+            }
+
+            draw2DSystem();
+        }
+
+        // Control Functions
+        function startSystem() {
+            ENTERPRISE_CONFIG.systemRunning = true;
+            const statusEl = document.getElementById('systemStatus');
+            if (statusEl) {
+                statusEl.innerHTML = '<div class="status-indicator"></div>SYSTEM STATUS: ACTIVE - Enterprise AI Engine Running';
+                statusEl.style.color = 'var(--accent-green)';
+            }
+            showNotification('Enterprise System Activated - Full AI Optimization Online', 'success');
+        }
+
+        function stopSystem() {
+            ENTERPRISE_CONFIG.systemRunning = false;
+            const statusEl = document.getElementById('systemStatus');
+            if (statusEl) {
+                statusEl.innerHTML = '<div class="status-indicator" style="background: var(--danger); box-shadow: 0 0 25px var(--danger);"></div>SYSTEM STATUS: EMERGENCY STOP - All Operations Halted';
+                statusEl.style.color = 'var(--danger)';
+            }
+            showNotification('Emergency Stop Activated - System Safely Shutdown', 'warning');
+        }
+
+        function toggleAIMode() {
+            ENTERPRISE_CONFIG.aiMode = !ENTERPRISE_CONFIG.aiMode;
+            const btn = event.target;
+            
+            if (btn) {
+                if (ENTERPRISE_CONFIG.aiMode) {
+                    btn.textContent = 'AI Optimization ON';
+                    btn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71, #58d68d)';
+                    showNotification('Neural Network Optimization Activated', 'success');
+                } else {
+                    btn.textContent = 'AI Optimization';
+                    btn.style.background = 'linear-gradient(135deg, #9b59b6, #8e44ad, #bb8fce)';
+                    showNotification('AI Optimization Deactivated', 'info');
+                }
+            }
+        }
+
+        function runSimulation() {
+            showNotification('Monte Carlo Simulation Started - 10,000 Iterations', 'info');
+            
+            // Simulate progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    showNotification('Simulation Complete - Optimization Recommendations Available', 'success');
+                }
+            }, 200);
+        }
+
+        function performAnalysis() {
+            showNotification('Deep Learning Analysis Initiated - Processing Historical Data', 'info');
+            
+            setTimeout(() => {
+                const efficiency = (Math.random() * 2 + 1).toFixed(2);
+                const optimization = (Math.random() * 20 + 10).toFixed(1);
+                showNotification(`Analysis Complete: ${efficiency}% efficiency trend, ${optimization}% cost optimization potential`, 'success');
+            }, 3000);
+        }
+
+        function exportReport() {
+            try {
+                const reportData = generateReportData();
+                const reportText = generateReportText(reportData);
+                
+                const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Enterprise_UPS_Report_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showNotification('Enterprise Report Generated Successfully', 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                showNotification('Report Export Failed - Check Console for Details', 'error');
+            }
+        }
+
+        function generateReportData() {
+            return {
+                timestamp: new Date().toISOString(),
+                systemStatus: ENTERPRISE_CONFIG.systemRunning ? 'Active' : 'Stopped',
+                aiOptimization: ENTERPRISE_CONFIG.aiMode,
+                currentMetrics: {
+                    load: document.getElementById('currentLoad')?.textContent || 'N/A',
+                    efficiency: document.getElementById('systemEfficiency')?.textContent || 'N/A',
+                    batteryHealth: document.getElementById('batteryHealth')?.textContent || 'N/A',
+                    uptime: document.getElementById('systemUptime')?.textContent || 'N/A'
+                },
+                financialData: {
+                    dailyCost: document.getElementById('dailyCost')?.textContent || 'N/A',
+                    annualCost: document.getElementById('annualCost')?.textContent || 'N/A',
+                    potentialSavings: document.getElementById('potentialSavings')?.textContent || 'N/A'
+                }
+            };
+        }
+
+        function generateReportText(data) {
+            return `
+ENTERPRISE UPS MANAGEMENT SYSTEM - COMPREHENSIVE REPORT
+Generated: ${new Date().toLocaleString()}
+================================================================
+
+EXECUTIVE SUMMARY
+System Status: ${data.systemStatus}
+AI Optimization: ${data.aiOptimization ? 'ACTIVE' : 'STANDBY'}
+Overall Health: Excellent
+
+CURRENT PERFORMANCE METRICS
+Current Load: ${data.currentMetrics.load}
+System Efficiency: ${data.currentMetrics.efficiency}
+Battery Health: ${data.currentMetrics.batteryHealth}
+System Uptime: ${data.currentMetrics.uptime}
+
+FINANCIAL ANALYSIS
+Daily Cost: ${data.financialData.dailyCost}
+Annual Projection: ${data.financialData.annualCost}
+Potential Savings: ${data.financialData.potentialSavings}
+
+RECOMMENDATIONS
+1. Continue current neural network optimization for maximum efficiency
+2. Schedule predictive maintenance based on AI analysis
+3. Implement load balancing during peak demand periods
+
+================================================================
+Report Generated by Enterprise UPS Management System v5.0.0
+            `;
+        }
+
+        // Real-time Simulation
+        function startSimulation() {
+            setInterval(() => {
+                if (ENTERPRISE_CONFIG.systemRunning) {
+                    updateRealTimeData();
+                    updateCharts();
+                }
+            }, 5000);
+        }
+
+        function updateRealTimeData() {
+            // Update load with realistic variation
+            const baseLoad = 31547;
+            const variation = (Math.random() - 0.5) * 5000;
+            const currentLoad = Math.max(5000, baseLoad + variation);
+            
+            // Update efficiency with AI boost
+            const baseEfficiency = 94.5;
+            const aiBoost = ENTERPRISE_CONFIG.aiMode ? 2.2 : 0;
+            const efficiency = Math.min(99.9, baseEfficiency + aiBoost + (Math.random() - 0.5) * 1.5);
+
+            // Update displays
+            document.getElementById('currentLoad').textContent = `${currentLoad.toLocaleString()} VA`;
+            document.getElementById('systemEfficiency').textContent = `${efficiency.toFixed(1)}%`;
+            
+            // Update financial metrics
+            const dailyCost = (currentLoad * 24 * ENTERPRISE_CONFIG.electricityRate / 1000).toFixed(2);
+            const annualCost = (parseFloat(dailyCost) * 365).toFixed(0);
+            const savings = (parseFloat(annualCost) * (ENTERPRISE_CONFIG.aiMode ? 0.18 : 0.12)).toFixed(0);
+            
+            document.getElementById('dailyCost').textContent = `R${parseFloat(dailyCost).toLocaleString()}`;
+            document.getElementById('annualCost').textContent = `R${parseFloat(annualCost).toLocaleString()}`;
+            document.getElementById('potentialSavings').textContent = `R${parseFloat(savings).toLocaleString()}`;
+
+            // Add to time series
+            const now = new Date();
+            ENTERPRISE_CONFIG.timeSeriesData.timestamps.push(now);
+            ENTERPRISE_CONFIG.timeSeriesData.loadData.push(currentLoad);
+            ENTERPRISE_CONFIG.timeSeriesData.efficiencyData.push(efficiency);
+            
+            // Keep only last 50 points
+            if (ENTERPRISE_CONFIG.timeSeriesData.timestamps.length > 50) {
+                ENTERPRISE_CONFIG.timeSeriesData.timestamps.shift();
+                ENTERPRISE_CONFIG.timeSeriesData.loadData.shift();
+                ENTERPRISE_CONFIG.timeSeriesData.efficiencyData.shift();
+            }
+        }
+
+        function updateCharts() {
+            if (typeof Chart !== 'undefined' && ENTERPRISE_CONFIG.charts.loadChart) {
+                try {
+                    // Update load chart
+                    ENTERPRISE_CONFIG.charts.loadChart.data.labels = ENTERPRISE_CONFIG.timeSeriesData.timestamps.map(t => 
+                        t.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})
+                    );
+                    ENTERPRISE_CONFIG.charts.loadChart.data.datasets[0].data = [...ENTERPRISE_CONFIG.timeSeriesData.loadData];
+                    ENTERPRISE_CONFIG.charts.loadChart.update('none');
+
+                    // Update efficiency chart
+                    if (ENTERPRISE_CONFIG.charts.efficiencyChart) {
+                        ENTERPRISE_CONFIG.charts.efficiencyChart.data.labels = ENTERPRISE_CONFIG.timeSeriesData.timestamps.map(t => 
+                            t.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})
+                        );
+                        ENTERPRISE_CONFIG.charts.efficiencyChart.data.datasets[0].data = [...ENTERPRISE_CONFIG.timeSeriesData.efficiencyData];
+                        ENTERPRISE_CONFIG.charts.efficiencyChart.update('none');
+                    }
+                } catch (error) {
+                    console.warn('Chart update failed:', error);
+                }
+            }
+        }
+
+        // Notification System
+        function showNotification(message, type = 'success') {
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 600;">${message}</div>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="background: none; border: none; color: white; cursor: pointer; font-size: 22px; margin-left: 25px; opacity: 0.8;">×</button>
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideInRight 0.4s ease-out reverse';
+                    setTimeout(() => notification.remove(), 400);
+                }
+            }, 6000);
+        }
+    </script>
+</body>
+</html>
